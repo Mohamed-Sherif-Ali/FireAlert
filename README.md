@@ -93,17 +93,31 @@ Before powering the circuit:
 - Check the LCD I2C address
 - Confirm that connected modules use compatible voltage levels
 
-### 3. Configure notification credentials
+### 3. Configure Local Credentials
 
-Open `fire_alert_system.ino` and locate:
+Create your private configuration file by copying the example:
+
+```bash
+cp secrets.example.h secrets.h
+```
+
+On Windows PowerShell:
+
+```powershell
+Copy-Item secrets.example.h secrets.h
+```
+
+Open `secrets.h` and replace the placeholders:
 
 ```cpp
 const char* WIFI_SSID = "YOUR_WIFI_NAME";
 const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
 
-String PHONE_NUMBER = "1234567890";
-String API_KEY = "YOUR_API_KEY_HERE";
+String PHONE_NUMBER = "YOUR_PHONE_NUMBER";
+String API_KEY = "YOUR_CALLMEBOT_API_KEY";
 ```
+
+`secrets.h` is excluded through `.gitignore` and must not be committed.
 
 Replace the placeholder values locally.
 
