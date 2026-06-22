@@ -33,6 +33,8 @@
 #include <HTTPClient.h>
 #include <UrlEncode.h>
 
+#include "secrets.h"
+
 // ═══════════════════════════════════════════════════════════════════════════
 // PIN DEFINITIONS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -43,25 +45,7 @@
 #define FLAME_PIN   15    // Flame sensor digital output (LOW = flame detected)
 #define TEMP_PIN    34    // LM35 temperature sensor analog input
 
-// ═══════════════════════════════════════════════════════════════════════════
-// WIFI CREDENTIALS
-// ═══════════════════════════════════════════════════════════════════════════
-// Replace with your network credentials
 
-const char* WIFI_SSID = "YOUR_WIFI_NAME";
-const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
-
-// ═══════════════════════════════════════════════════════════════════════════
-// CALLMEBOT WHATSAPP API CONFIGURATION
-// ═══════════════════════════════════════════════════════════════════════════
-// Setup Instructions:
-// 1. Save +34 621073059 to WhatsApp contacts as "CallMeBot"
-// 2. Send "I allow callmebot to send me messages" to this number
-// 3. You'll receive your API key - paste it below
-// 4. Format phone number with country code (e.g., +1234567890 → 1234567890)
-
-String PHONE_NUMBER = "1234567890";          // Your phone number (no + or spaces)
-String API_KEY = "YOUR_API_KEY_HERE";        // Your CallMeBot API key
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SYSTEM CONFIGURATION
