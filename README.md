@@ -1,525 +1,189 @@
-# 🔥 Fire Detection & Alert System
+# FireAlert
 
-**ESP32-Based Fire Monitoring with Real-Time WhatsApp Notifications**
+**ESP32 Fire-Monitoring Prototype**
 
-An IoT fire detection system that monitors temperature and flame conditions, providing instant WhatsApp alerts via the CallMeBot API. Features include visual/audio alarms, LCD display, and user acknowledgment capabilities.
+FireAlert is an educational IoT prototype that monitors temperature and flame-sensor input using an ESP32.
 
----
+When a configured alert condition is detected, the system activates an LED and buzzer, displays the alert on an I2C LCD, and attempts to send a WhatsApp notification through CallMeBot.
 
-## ✨ Features
+> FireAlert is not certified fire-safety equipment and must not replace approved smoke detectors, alarms, or emergency procedures.
 
-### 🔥 **Fire Detection**
-- **Dual Detection**: Flame sensor + temperature threshold (>60°C)
-- **Real-Time Monitoring**: Continuous 500ms sensor polling
-- **Instant Alerts**: Immediate activation on fire detection
+## Features
 
-### 📱 **WhatsApp Notifications**
-- **CallMeBot Integration**: Free WhatsApp API service
-- **Smart Alerts**: One message per fire event (prevents spam)
-- **WiFi Auto-Reconnect**: Ensures alert delivery
+- LM35 temperature monitoring
+- Digital flame-sensor monitoring
+- Configurable temperature threshold
+- LED and buzzer alarm outputs
+- 16×2 I2C LCD status display
+- WhatsApp notifications through CallMeBot
+- Alarm acknowledgement using a push button
+- Automatic Wi-Fi reconnection attempts
+- Serial-monitor diagnostic output
+- One notification attempt per detected event
 
-### 🚨 **Alarm System**
-- **Visual Indicator**: LED activation on fire detection
-- **Audio Alert**: Buzzer activation
-- **User Acknowledgment**: Push button to silence alarm
-- **Auto-Shutoff**: 60-second timeout prevents endless alarms
+## System Architecture
 
-### 📊 **Display & Monitoring**
-- **16x2 LCD**: Real-time temperature and flame status
-- **Serial Monitor**: Detailed system logs
-- **WiFi Status**: Connection feedback
+```mermaid
+flowchart LR
+    LM35[LM35 Temperature Sensor] --> ESP32[ESP32 Controller]
+    Flame[Flame Sensor] --> ESP32
+    Button[Acknowledgement Button] --> ESP32
 
----
+    ESP32 --> LCD[16×2 I2C LCD]
+    ESP32 --> LED[LED Indicator]
+    ESP32 --> Buzzer[Audible Buzzer]
 
-## 🛠️ Hardware Components
-
-| Component | Quantity | Purpose |
-|-----------|----------|---------|
-| **ESP32 Dev Board** | 1 | Main microcontroller with WiFi |
-| **LM35 Temperature Sensor** | 1 | Analog temperature measurement |
-| **Flame Sensor Module** | 1 | IR-based flame detection |
-| **16x2 I2C LCD** | 1 | Status display |
-| **Active Buzzer** | 1 | Audio alarm |
-| **LED** | 1 | Visual indicator |
-| **Push Button** | 1 | Alarm acknowledgment |
-| **220Ω Resistor** | 1 | For LED (if needed) |
-| **Jumper Wires** | ~20 | Connections |
-| **Breadboard** | 1 | Prototyping |
-
----
-
-## 📐 Circuit Diagram
-
-### Pin Connections
-
-| Component | Pin | ESP32 GPIO | Notes |
-|-----------|-----|------------|-------|
-| **Flame Sensor** | VCC | 3.3V | Power |
-| | GND | GND | Ground |
-| | D0 | GPIO 15 | Digital output (LOW = flame) |
-| **LM35 Temp Sensor** | VCC | 3.3V | Power (can use 5V) |
-| | OUT | GPIO 34 | Analog output |
-| | GND | GND | Ground |
-| **LCD (I2C)** | VCC | 5V | Power |
-| | GND | GND | Ground |
-| | SDA | GPIO 21 | I2C data |
-| | SCL | GPIO 22 | I2C clock |
-| **Buzzer** | + | GPIO 18 | Positive terminal |
-| | - | GND | Negative terminal |
-| **LED** | Anode (+) | GPIO 4 | Through 220Ω resistor |
-| | Cathode (-) | GND | Ground |
-| **Button** | One side | GPIO 14 | Pull-up enabled |
-| | Other side | GND | Pressed = LOW |
-
-### Schematic
-
-```
-ESP32                    Sensors/Outputs
-━━━━━                    ━━━━━━━━━━━━━━━
-
-GPIO 15 ──────────────> Flame Sensor (D0)
-GPIO 34 ──────────────> LM35 (OUT)
-GPIO 21 (SDA) ────────> LCD (SDA)
-GPIO 22 (SCL) ────────> LCD (SCL)
-GPIO 18 ──────────────> Buzzer (+)
-GPIO 4  ───[220Ω]────> LED (Anode)
-GPIO 14 ──────/───────> Button
-              │
-             GND
+    ESP32 --> WiFi[Wi-Fi Network]
+    WiFi --> CallMeBot[CallMeBot API]
+    CallMeBot --> WhatsApp[WhatsApp Notification]
 ```
 
----
+## Hardware
 
-## 📦 Software Requirements
+| Component | Purpose |
+|---|---|
+| ESP32 development board | Main controller and Wi-Fi connectivity |
+| LM35 temperature sensor | Analog temperature measurement |
+| Flame-sensor module | Digital flame indication |
+| 16×2 I2C LCD | Local system status |
+| Active buzzer | Audible alert |
+| LED and resistor | Visual alert |
+| Push button | Alarm acknowledgement |
+| Breadboard and jumper wires | Prototype connections |
 
-### Arduino IDE Setup
+## Pin Configuration
 
-1. **Install ESP32 Board Support:**
-   ```
-   File → Preferences → Additional Board Manager URLs
-   Add: https://dl.espressif.com/dl/package_esp32_index.json
-   
-   Tools → Board → Boards Manager → Search "esp32" → Install
-   ```
+| Component | ESP32 connection |
+|---|---|
+| Flame-sensor digital output | GPIO 15 |
+| LM35 analog output | GPIO 34 |
+| LCD SDA | GPIO 21 |
+| LCD SCL | GPIO 22 |
+| Buzzer | GPIO 18 |
+| LED | GPIO 4 |
+| Acknowledgement button | GPIO 14 |
 
-2. **Install Required Libraries:**
-   ```
-   Sketch → Include Library → Manage Libraries
-   
-   Search and install:
-   - LiquidCrystal I2C (by Frank de Brabander)
-   - UrlEncode (by Masayuki Sugahara)
-   ```
+Confirm the voltage requirements and pin arrangement of your specific modules before powering the circuit.
 
-3. **Board Configuration:**
-   ```
-   Tools → Board → ESP32 Arduino → ESP32 Dev Module
-   Tools → Upload Speed → 115200
-   Tools → Flash Frequency → 80MHz
-   ```
+## Software Requirements
 
----
+- Arduino IDE
+- ESP32 board support
+- `LiquidCrystal_I2C`
+- `UrlEncode`
+- ESP32 Wi-Fi and HTTP client libraries
 
-## 🔧 Installation & Setup
+## Installation
 
-### Step 1: Hardware Assembly
+### 1. Clone the repository
 
-1. **Connect Components** according to pin diagram above
-2. **Double-check connections** (especially power/ground)
-3. **Verify I2C LCD address** (usually 0x27 or 0x3F)
-   - Run I2C scanner sketch if needed
+```bash
+git clone https://github.com/Mohamed-Sherif-Ali/FireAlert.git
+cd FireAlert
+```
 
-### Step 2: CallMeBot WhatsApp Setup
+### 2. Assemble the prototype
 
-1. **Add CallMeBot to WhatsApp:**
-   - Save `+34 621 073 059` as a contact
-   - Name it "CallMeBot" or similar
+Connect the components according to the pin table.
 
-2. **Get API Key:**
-   - Send this exact message to CallMeBot via WhatsApp:
-     ```
-     I allow callmebot to send me messages
-     ```
-   - You'll receive a reply with your API key
-   - **Save this key!** You'll need it in the code
+Before powering the circuit:
 
-3. **Format Phone Number:**
-   - Use international format WITHOUT + or spaces
-   - Example: +1 234-567-8900 → `1234567890`
+- Confirm all ground connections
+- Verify sensor pin orientation
+- Check the LCD I2C address
+- Confirm that connected modules use compatible voltage levels
 
-### Step 3: Configure Code
+### 3. Configure notification credentials
 
-Open `fire_alert_system.ino` and update these lines:
+Open `fire_alert_system.ino` and locate:
 
 ```cpp
-// WiFi Credentials (line ~35)
 const char* WIFI_SSID = "YOUR_WIFI_NAME";
 const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
 
-// CallMeBot Configuration (line ~47)
-String PHONE_NUMBER = "1234567890";          // Your phone number
-String API_KEY = "YOUR_API_KEY_HERE";        // Your CallMeBot API key
+String PHONE_NUMBER = "1234567890";
+String API_KEY = "YOUR_API_KEY_HERE";
 ```
 
-### Step 4: Upload Code
+Replace the placeholder values locally.
 
-1. Connect ESP32 via USB
-2. Select correct COM port: `Tools → Port`
-3. Click Upload button (or Ctrl+U)
-4. Wait for "Done uploading"
-5. Open Serial Monitor: `Tools → Serial Monitor`
-6. Set baud rate: `115200`
+Do not commit real Wi-Fi passwords, phone numbers, or API keys to GitHub.
 
----
+Obtain the phone number and API key according to CallMeBot's current setup instructions.
 
-## 🚀 Usage
+### 4. Upload the sketch
 
-### Normal Operation
+1. Connect the ESP32 through USB.
+2. Select the correct ESP32 board.
+3. Select the correct serial port.
+4. Upload `fire_alert_system.ino`.
+5. Open the Serial Monitor at `115200` baud.
 
-**LCD Display Shows:**
-```
-Temp: 25.3 C
-Flame: NO
-```
+## Current Configuration
 
-**Serial Monitor Shows:**
-```
-Temperature: 25.3 °C
-```
+The default sketch uses:
 
-### Fire Detection
+| Setting | Default |
+|---|---:|
+| Temperature alert threshold | 60°C |
+| Temperature-reading interval | 500 ms |
+| Wi-Fi retry interval | 5 seconds |
+| Wi-Fi connection timeout | 20 seconds |
+| Alarm auto-shutoff | 60 seconds |
+| Button debounce delay | 50 ms |
 
-**When flame detected OR temperature >60°C:**
+These values are prototype defaults, not certified safety settings.
 
-1. **Alarm Activates:**
-   - LED turns ON
-   - Buzzer sounds
-   - LCD shows: `!! FIRE ALERT !!`
+Sensor behaviour should be tested and calibrated for the specific hardware and environment.
 
-2. **WhatsApp Message Sent:**
-   ```
-   🔥 FIRE ALERT! Flame detected. Take immediate action!
-   ```
-   or
-   ```
-   🌡️ HIGH TEMPERATURE ALERT! Temperature: 65.2°C. Possible fire!
-   ```
+## How It Works
 
-3. **Acknowledgment:**
-   - Press button to silence alarm
-   - OR wait 60 seconds for auto-shutoff
+1. The ESP32 initializes the sensors, LCD, alarm outputs, and Wi-Fi connection.
+2. It periodically reads the LM35 temperature value.
+3. It continuously checks the digital flame-sensor state.
+4. A flame indication or temperature above the configured threshold activates the alarm.
+5. The system attempts to send one WhatsApp notification for the event.
+6. The user can silence the buzzer using the acknowledgement button.
+7. The alarm also stops automatically after the configured timeout.
+8. Monitoring continues after the alarm is reset.
 
-4. **Reset:**
-   - System returns to monitoring mode
-   - New alerts can be sent if fire persists
+## Limitations
 
----
+- The project has not undergone fire-safety certification.
+- The sensors may produce false positives or false negatives.
+- Temperature measurements depend on ESP32 ADC behaviour and sensor calibration.
+- Flame sensors can be affected by distance, orientation, ambient light, and sensor quality.
+- WhatsApp notifications depend on Wi-Fi and an external service.
+- Network alerts may be delayed or fail completely.
+- Credentials are currently configured directly inside the source file.
+- The prototype does not include redundant sensing or backup communication.
+- The alarm auto-shutoff may be inappropriate for real safety systems.
 
-## ⚙️ Configuration Options
+## Possible Improvements
 
-### Temperature Threshold
+- Move credentials into an excluded local configuration file
+- Add calibrated temperature conversion
+- Store event history locally
+- Add MQTT integration
+- Add multiple sensor zones
+- Add notification retry tracking
+- Add backup power monitoring
+- Add automated tests for state transitions
+- Add a circuit diagram and prototype photographs
+- Replace blocking delays with non-blocking state logic
 
-Change fire detection temperature:
-```cpp
-const float TEMP_THRESHOLD = 60.0;  // Default: 60°C
-```
+## Safety Disclaimer
 
-**Recommended values:**
-- **Kitchen**: 70-80°C
-- **Living room**: 50-60°C
-- **Server room**: 40-50°C
+FireAlert is an educational and experimental prototype.
 
-### Alarm Timeout
+It must not be used as the primary or sole method of detecting a fire. It has not undergone regulatory assessment, environmental testing, fault-tolerance testing, or independent safety validation.
 
-Change auto-shutoff duration:
-```cpp
-const unsigned long ALARM_TIMEOUT = 60000;  // Default: 60 seconds
-```
+Always use certified smoke detectors and fire-alarm equipment installed according to applicable local regulations.
 
-### LCD I2C Address
+## License
 
-If LCD doesn't work, try different address:
-```cpp
-LiquidCrystal_I2C lcd(0x3F, 16, 2);  // Try 0x3F instead of 0x27
-```
+Released under the MIT License. See [LICENSE](LICENSE).
 
-**Find your LCD address:**
-```cpp
-// Run I2C Scanner sketch to find address
-```
+## Author
 
----
-
-## 🐛 Troubleshooting
-
-### WiFi Won't Connect
-
-**Symptoms:** LCD shows "WiFi Failed!"
-
-**Solutions:**
-1. Check SSID and password (case-sensitive!)
-2. Ensure 2.4GHz WiFi (ESP32 doesn't support 5GHz)
-3. Move ESP32 closer to router
-4. Check router firewall settings
-
-### WhatsApp Message Not Sending
-
-**Symptoms:** Serial shows error code
-
-**Solutions:**
-
-| Error Code | Meaning | Solution |
-|------------|---------|----------|
-| **-1** | Connection failed | Check WiFi connection |
-| **401** | Unauthorized | Verify API key is correct |
-| **403** | Forbidden | Re-register with CallMeBot |
-| **500** | Server error | Wait a few minutes, try again |
-
-**Also check:**
-- Phone number format (no + or spaces)
-- API key copied correctly (no extra spaces)
-- CallMeBot rate limit (max ~1 msg/minute)
-
-### LCD Shows Nothing
-
-**Solutions:**
-1. Check I2C connections (SDA/SCL swapped?)
-2. Try different I2C address (0x27 or 0x3F)
-3. Adjust potentiometer on LCD backpack (contrast)
-4. Run I2C scanner to detect address
-
-### Flame Sensor Always Triggered
-
-**Solutions:**
-1. Adjust sensitivity potentiometer on sensor
-2. Check wiring (should be active LOW)
-3. Shield sensor from ambient light
-4. Verify sensor is not damaged
-
-### Temperature Reading Wrong
-
-**Solutions:**
-1. Check LM35 wiring (VCC, OUT, GND correct?)
-2. Ensure using 3.3V or 5V (not both)
-3. Verify sensor orientation (flat side faces you)
-4. Calculate expected reading:
-   ```
-   Room temp ~25°C → Should read 23-27°C
-   Hand on sensor → Should jump to 30-35°C
-   ```
-
-### Button Doesn't Work
-
-**Solutions:**
-1. Check connections (one side to GPIO14, other to GND)
-2. Code uses INPUT_PULLUP (no external resistor needed)
-3. Try different button or check for damage
-
----
-
-## 📊 System Specifications
-
-| Parameter | Value | Notes |
-|-----------|-------|-------|
-| **Temperature Range** | 0-100°C | LM35 sensor limit |
-| **Temperature Accuracy** | ±0.5°C | At 25°C |
-| **Flame Detection Range** | 0-100cm | Typical IR sensor |
-| **Flame Detection Angle** | ~60° | Depends on sensor model |
-| **Update Rate** | 500ms | Temperature readings |
-| **WiFi Protocol** | 802.11 b/g/n | 2.4GHz only |
-| **Operating Voltage** | 3.3V / 5V | Mixed logic levels |
-| **Power Consumption** | ~200mA | With WiFi active |
-| **Alert Latency** | 1-3 seconds | From detection to WhatsApp |
-
----
-
-## 🔒 Safety Considerations
-
-### ⚠️ Important Warnings
-
-- **This is a PROTOTYPE** - Not certified for life-safety applications
-- **Do NOT rely solely** on this system for fire protection
-- **Install proper smoke detectors** as primary safety devices
-- **Test regularly** to ensure proper operation
-- **Keep fire extinguisher** accessible
-- **Have evacuation plan** in place
-
-### Best Practices
-
-✅ **DO:**
-- Test system weekly
-- Keep sensors clean and unobstructed
-- Use in conjunction with certified smoke alarms
-- Ensure WiFi is stable and reliable
-- Have backup power (battery) for ESP32
-- Mount sensors properly (ceiling-mounted preferred)
-
-❌ **DON'T:**
-- Use as sole fire detection method
-- Install in extreme environments (>50°C ambient)
-- Expose sensors to direct sunlight
-- Ignore regular maintenance
-- Use damaged sensors
-- Block sensor field of view
-
----
-
-## 🔄 System Flowchart
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    SYSTEM START                         │
-└──────────────────────┬──────────────────────────────────┘
-                       │
-                       ▼
-         ┌─────────────────────────┐
-         │  Initialize Hardware    │
-         │  - GPIO pins            │
-         │  - LCD display          │
-         │  - Connect WiFi         │
-         └────────────┬────────────┘
-                      │
-                      ▼
-         ┌─────────────────────────┐
-         │   MONITORING LOOP       │
-         │   (Every 500ms)         │
-         └────────────┬────────────┘
-                      │
-          ┌───────────┴───────────┐
-          │                       │
-          ▼                       ▼
-    ┌─────────┐           ┌─────────────┐
-    │ Read    │           │ Check Flame │
-    │ Temp    │           │ Sensor      │
-    └────┬────┘           └──────┬──────┘
-         │                       │
-         └───────────┬───────────┘
-                     │
-                     ▼
-            ┌────────────────┐
-            │ Fire Detected? │
-            └───┬────────┬───┘
-                │        │
-           NO   │        │   YES
-                │        │
-                │        ▼
-                │  ┌──────────────┐
-                │  │ Activate:    │
-                │  │ - LED        │
-                │  │ - Buzzer     │
-                │  │ - WhatsApp   │
-                │  └──────┬───────┘
-                │         │
-                │         ▼
-                │  ┌──────────────┐
-                │  │ Wait for:    │
-                │  │ - Button OR  │
-                │  │ - 60s timeout│
-                │  └──────┬───────┘
-                │         │
-                │         ▼
-                │  ┌──────────────┐
-                │  │ Deactivate   │
-                │  │ Alarm        │
-                │  └──────┬───────┘
-                │         │
-                └─────────┴───────────┐
-                                      │
-                     ┌────────────────┘
-                     │
-                     ▼
-            ┌────────────────┐
-            │ Update LCD     │
-            └────────┬───────┘
-                     │
-                     ▼
-            ┌────────────────┐
-            │ WiFi OK?       │
-            └───┬────────┬───┘
-                │        │
-           YES  │        │   NO
-                │        │
-                │        ▼
-                │  ┌──────────────┐
-                │  │ Reconnect    │
-                │  │ WiFi         │
-                │  └──────┬───────┘
-                │         │
-                └─────────┴───────────┐
-                                      │
-                     ┌────────────────┘
-                     │
-                     ▼
-              (Loop continues)
-```
-
----
-
-## 📈 Future Enhancements
-
-### Planned Features
-- [ ] Multiple sensor support (different rooms)
-- [ ] Data logging to SD card
-- [ ] Web dashboard for monitoring
-- [ ] Battery backup with low-battery alert
-- [ ] Email notifications (in addition to WhatsApp)
-- [ ] MQTT integration for smart home
-- [ ] Mobile app for configuration
-- [ ] Siren/strobe light support
-- [ ] Fire department auto-dial (via GSM module)
-- [ ] Machine learning for false positive reduction
-
----
-
-## 🎓 Learning Outcomes
-
-This project demonstrates:
-- **IoT Integration**: ESP32 WiFi capabilities
-- **Sensor Interfacing**: Analog (LM35) and digital (flame sensor)
-- **API Communication**: HTTP GET requests
-- **Display Control**: I2C LCD communication
-- **Interrupt Handling**: Button input with debouncing
-- **State Management**: Alarm activation/deactivation logic
-- **Error Handling**: WiFi reconnection, timeout handling
-- **User Experience**: Visual/audio feedback, acknowledgment
-
----
-
-## 📄 License
-
-MIT License - See LICENSE file for details
-
----
-
-## 👤 Author
-
-**Mohamed Sherif Ali**  
- AI & Computer VisionEngineer
----
-
-## 🙏 Acknowledgments
-
-- **CallMeBot** - Free WhatsApp API service
-- **ESP32 Community** - Excellent documentation and libraries
-- **Arduino** - Development environment
-
----
-
-## 📞 Support
-
-**Issues or Questions?**
-- Open an issue on GitHub
-- Check troubleshooting section above
-- Test with Serial Monitor for debugging
-
----
-
-## ⚠️ Disclaimer
-
-This fire detection system is a DIY project for educational and experimental purposes. It is NOT a replacement for certified fire safety equipment. For life-safety applications, always use UL-listed or equivalent certified smoke detectors and fire alarm systems. The author is not responsible for any damages or injuries resulting from the use of this system.
-
-**Always follow local fire safety codes and regulations.**
-
----
-
-**🔥 Stay Safe! Test Your System Regularly! 🔥**
+Mohamed Sherif Ali
